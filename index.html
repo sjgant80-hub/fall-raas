@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fall-raas · Research-as-a-Service · 5-angle adversarial · cited synthesis</title>
+<meta name="description" content="Productised deep-research workflow. 5-angle fan-out · 3-vote adversarial verification · cited synthesis. Drop-in JS SDK. BYO Anthropic key. MIT.">
+<meta name="theme-color" content="#0b0a0f">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22fall-raas%22%2C%22short_name%22%3A%22raas%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230b0a0f%22%2C%22theme_color%22%3A%22%230b0a0f%22%2C%22icons%22%3A%5B%5D%7D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Syne:wght@500;700;800&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ox: #8b1a1a;
+    --brass: #b8974a;
+    --cream: #c4bfb2;
+    --void: #0b0a0f;
+    --gold: #d4a853;
+    --surface: #14131a;
+    --surface2: #1c1a23;
+    --border: #2a2730;
+    --muted: #6f6b78;
+    --scope: #b8974a;
+    --search: #c87e3a;
+    --fetch: #d4a853;
+    --verify: #c8371a;
+    --synth: #4a8a4a;
+    --green: #4a8a4a;
+    --amber: #c87e3a;
+    --red: #c8371a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--void); color: var(--cream); font-family: 'DM Sans', system-ui, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  body {
+    background-image:
+      radial-gradient(at 15% 0%, rgba(139,26,26,0.08) 0%, transparent 45%),
+      radial-gradient(at 85% 30%, rgba(212,168,83,0.05) 0%, transparent 40%),
+      radial-gradient(at 50% 100%, rgba(74,138,74,0.04) 0%, transparent 50%);
+    line-height: 1.55;
+  }
+
+  /* ─── HEADER ────────────────────────────────────────────────── */
+  header.top { padding: 22px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  header.top h1 { font-family: 'Libre Baskerville', serif; font-size: 20px; margin: 0; letter-spacing: 0.02em; font-weight: 700; }
+  header.top h1 em { color: var(--gold); font-style: normal; }
+  header.top .meta { font-family: 'DM Mono'; font-size: 10.5px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+  header.top .meta b { color: var(--brass); font-weight: 500; }
+
+  /* ─── HERO ──────────────────────────────────────────────────── */
+  section.hero { padding: 64px 32px 40px; max-width: 1200px; margin: 0 auto; text-align: center; }
+  section.hero h2 { font-family: 'Libre Baskerville', serif; font-size: 44px; line-height: 1.15; margin: 0 0 18px; letter-spacing: -0.01em; color: var(--cream); }
+  section.hero h2 em { color: var(--gold); font-style: italic; }
+  section.hero .sub { font-family: 'DM Sans'; font-size: 17px; color: var(--cream); opacity: 0.85; max-width: 760px; margin: 0 auto 26px; }
+  section.hero .strip { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; font-family: 'DM Mono'; font-size: 11.5px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 28px; }
+  section.hero .strip span b { color: var(--brass); font-weight: 500; }
+  @media (max-width: 700px) { section.hero h2 { font-size: 30px; } section.hero .sub { font-size: 15px; } }
+
+  /* ─── DEMO ──────────────────────────────────────────────────── */
+  section.demo { max-width: 1200px; margin: 0 auto; padding: 24px 32px 48px; display: grid; grid-template-columns: 380px 1fr; gap: 24px; }
+  @media (max-width: 980px) { section.demo { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface); border: 1px solid var(--border); padding: 22px; }
+  .panel h3 { font-family: 'Libre Baskerville', serif; font-size: 16px; margin: 0 0 14px; color: var(--cream); border-bottom: 1px solid var(--border); padding-bottom: 10px; letter-spacing: 0.01em; }
+  .panel h3 small { font-family: 'DM Mono'; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; float: right; font-weight: normal; padding-top: 4px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { font-family: 'DM Mono'; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+  .field textarea, .field input[type=text], .field input[type=password] {
+    width: 100%; background: var(--void); border: 1px solid var(--border); color: var(--cream);
+    padding: 11px 12px; font-family: 'DM Mono'; font-size: 12.5px; resize: vertical; line-height: 1.45;
+  }
+  .field textarea:focus, .field input:focus { outline: 1px solid var(--gold); outline-offset: -1px; }
+  .field textarea { min-height: 80px; }
+
+  .slider-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .slider-row .field { margin-bottom: 4px; }
+  .slider-row label { display: flex; justify-content: space-between; align-items: baseline; }
+  .slider-row label b { color: var(--gold); font-family: 'DM Mono'; font-size: 13px; letter-spacing: 0; }
+  .slider-row input[type=range] { width: 100%; accent-color: var(--gold); }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+  .btn { background: var(--ox); color: var(--cream); border: none; padding: 12px 20px; font-family: 'Syne'; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 12px; cursor: pointer; transition: background 0.15s, color 0.15s; flex: 1; }
+  .btn:hover { background: var(--gold); color: var(--void); }
+  .btn:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+  .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--cream); }
+  .btn.ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+  .keyhint { font-family: 'DM Mono'; font-size: 10.5px; color: var(--muted); margin-top: 12px; line-height: 1.6; padding: 10px; background: var(--void); border: 1px dashed var(--border); }
+  .keyhint b { color: var(--brass); }
+
+  /* ─── PHASE STEPPER ─────────────────────────────────────────── */
+  .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 16px; }
+  .step {
+    padding: 10px 8px; border: 1px solid var(--border); background: var(--void);
+    font-family: 'DM Mono'; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    text-align: center; color: var(--muted); position: relative;
+  }
+  .step .num { display: block; font-size: 9px; opacity: 0.6; margin-bottom: 4px; }
+  .step.active { color: var(--cream); border-color: var(--gold); }
+  .step.active.s1 { background: rgba(184,151,74,0.15); }
+  .step.active.s2 { background: rgba(200,126,58,0.15); }
+  .step.active.s3 { background: rgba(212,168,83,0.15); }
+  .step.active.s4 { background: rgba(200,55,26,0.15); }
+  .step.active.s5 { background: rgba(74,138,74,0.15); }
+  .step.done { color: var(--cream); opacity: 0.75; }
+  .step.done::after { content: '✓'; position: absolute; top: 4px; right: 6px; color: var(--green); font-size: 12px; }
+
+  /* ─── LOG STREAM ────────────────────────────────────────────── */
+  .stream { background: var(--void); border: 1px solid var(--border); padding: 14px; min-height: 220px; max-height: 360px; overflow-y: auto; font-family: 'DM Mono'; font-size: 11.5px; line-height: 1.6; }
+  .stream .ln { margin: 0 0 2px; }
+  .stream .ln .tag { display: inline-block; padding: 1px 6px; font-size: 9.5px; letter-spacing: 0.08em; margin-right: 8px; text-transform: uppercase; min-width: 56px; text-align: center; font-weight: 500; }
+  .stream .tag.scope  { background: rgba(184,151,74,0.18); color: var(--scope); }
+  .stream .tag.search { background: rgba(200,126,58,0.18); color: var(--search); }
+  .stream .tag.fetch  { background: rgba(212,168,83,0.18); color: var(--fetch); }
+  .stream .tag.verify { background: rgba(200,55,26,0.18); color: var(--verify); }
+  .stream .tag.synth  { background: rgba(74,138,74,0.18); color: var(--synth); }
+  .stream .text { color: var(--cream); }
+  .stream .text .v-ok { color: var(--green); }
+  .stream .text .v-ko { color: var(--red); }
+  .stream .text .v-mid { color: var(--amber); }
+  .stream .text .url { color: var(--brass); }
+  .stream .text .dim { color: var(--muted); }
+  .stream::-webkit-scrollbar { width: 8px; }
+  .stream::-webkit-scrollbar-track { background: var(--void); }
+  .stream::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* ─── OUTPUT ────────────────────────────────────────────────── */
+  .output { margin-top: 24px; display: none; }
+  .output.show { display: block; }
+  .output .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .output .grid { grid-template-columns: 1fr; } }
+
+  .summary-card { background: var(--surface); border: 1px solid var(--border); padding: 22px; margin-bottom: 16px; }
+  .summary-card h4 { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 14px; color: var(--brass); margin: 0 0 10px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .summary-card p { font-family: 'Libre Baskerville', serif; font-size: 16.5px; line-height: 1.65; color: var(--cream); margin: 0; }
+
+  .findings-card, .refuted-card, .openq-card, .sources-card { background: var(--surface); border: 1px solid var(--border); padding: 18px; margin-bottom: 16px; }
+  .findings-card { border-left: 3px solid var(--green); }
+  .refuted-card { border-left: 3px solid var(--red); }
+  .openq-card { border-left: 3px solid var(--amber); }
+  .sources-card { border-left: 3px solid var(--brass); }
+
+  .findings-card h4, .refuted-card h4, .openq-card h4, .sources-card h4 {
+    font-family: 'DM Mono'; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .findings-card h4 { color: var(--green); }
+  .refuted-card h4 { color: var(--red); }
+  .openq-card h4 { color: var(--amber); }
+  .sources-card h4 { color: var(--brass); }
+
+  .item { font-family: 'DM Sans'; font-size: 13.5px; line-height: 1.55; padding: 9px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 10px; }
+  .item:last-child { border-bottom: none; }
+  .item .icon { font-family: 'DM Mono'; font-size: 11px; font-weight: 700; min-width: 36px; padding-top: 1px; }
+  .item.ok .icon { color: var(--green); }
+  .item.ko .icon { color: var(--red); }
+  .item.mid .icon { color: var(--amber); }
+  .item .body { flex: 1; }
+  .item .body .why { font-family: 'DM Mono'; font-size: 11px; color: var(--muted); margin-top: 4px; font-style: italic; }
+  .item .body a { color: var(--brass); font-family: 'DM Mono'; font-size: 10.5px; text-decoration: none; }
+  .item .body a:hover { color: var(--gold); text-decoration: underline; }
+  .item .vote { font-family: 'DM Mono'; font-size: 10px; color: var(--muted); padding: 2px 6px; background: var(--void); border: 1px solid var(--border); margin-left: 6px; }
+
+  /* ─── STATS CARD ────────────────────────────────────────────── */
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 16px; }
+  @media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat { background: var(--surface); border: 1px solid var(--border); padding: 14px; text-align: center; }
+  .stat .v { font-family: 'Libre Baskerville', serif; font-size: 28px; color: var(--gold); display: block; line-height: 1; }
+  .stat .k { font-family: 'DM Mono'; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 8px; display: block; }
+
+  /* ─── SDK SECTION ───────────────────────────────────────────── */
+  section.sdk { max-width: 1200px; margin: 32px auto 0; padding: 0 32px 48px; }
+  section.sdk h2 { font-family: 'Libre Baskerville', serif; font-size: 24px; color: var(--cream); margin: 0 0 18px; }
+  section.sdk h2 em { color: var(--gold); font-style: italic; }
+  .code-card { background: var(--surface); border: 1px solid var(--border); padding: 22px; position: relative; }
+  .code-card pre { background: var(--void); border: 1px solid var(--border); padding: 18px; margin: 0; font-family: 'DM Mono'; font-size: 12px; overflow-x: auto; line-height: 1.65; color: var(--cream); }
+  .code-card pre .kw { color: var(--gold); }
+  .code-card pre .str { color: var(--brass); }
+  .code-card pre .cmt { color: var(--muted); font-style: italic; }
+  .code-card pre .fn { color: #d4a853; }
+  .code-card .copy { position: absolute; top: 30px; right: 30px; background: var(--surface2); border: 1px solid var(--border); color: var(--cream); padding: 6px 10px; font-family: 'DM Mono'; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
+  .code-card .copy:hover { background: var(--gold); color: var(--void); }
+
+  /* ─── POSITIONING ──────────────────────────────────────────── */
+  section.position { max-width: 1200px; margin: 0 auto; padding: 16px 32px 48px; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 800px) { .compare { grid-template-columns: 1fr; } }
+  .compare .col { background: var(--surface); border: 1px solid var(--border); padding: 20px; }
+  .compare .col h5 { font-family: 'Libre Baskerville', serif; font-size: 15px; margin: 0 0 12px; color: var(--cream); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .compare .col h5 em { color: var(--gold); font-style: italic; }
+  .compare .col ul { margin: 0; padding-left: 18px; font-family: 'DM Sans'; font-size: 13px; line-height: 1.6; color: var(--cream); }
+  .compare .col li { padding: 3px 0; }
+  .compare .col .check { color: var(--green); font-weight: 700; }
+  .compare .col .cross { color: var(--red); font-weight: 700; }
+
+  /* ─── TIERS ─────────────────────────────────────────────────── */
+  section.tiers { max-width: 1200px; margin: 0 auto; padding: 16px 32px 64px; }
+  .tier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 800px) { .tier-grid { grid-template-columns: 1fr; } }
+  .tier { background: var(--surface); border: 1px solid var(--border); padding: 22px; position: relative; }
+  .tier.sov { border-color: var(--gold); }
+  .tier h5 { font-family: 'Libre Baskerville', serif; font-size: 17px; margin: 0 0 8px; color: var(--cream); }
+  .tier .price { font-family: 'DM Mono'; font-size: 11px; color: var(--brass); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .tier ul { margin: 0; padding-left: 18px; font-family: 'DM Sans'; font-size: 13px; line-height: 1.7; color: var(--cream); }
+  .tier .badge-sov { position: absolute; top: -10px; right: 18px; background: var(--gold); color: var(--void); font-family: 'DM Mono'; font-size: 9px; padding: 4px 8px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+
+  /* ─── FOOTER ────────────────────────────────────────────────── */
+  footer { padding: 28px 32px; border-top: 1px solid var(--border); font-family: 'DM Mono'; font-size: 11px; color: var(--muted); text-align: center; letter-spacing: 0.06em; line-height: 1.8; }
+  footer a { color: var(--brass); text-decoration: none; }
+  footer a:hover { color: var(--gold); }
+  footer .badges { margin-top: 8px; }
+  footer .badges span { display: inline-block; padding: 2px 8px; border: 1px solid var(--border); margin: 0 4px; }
+
+  .pulse { display: inline-block; width: 8px; height: 8px; background: var(--gold); border-radius: 50%; animation: pulse 1.4s infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>◊ <em>fall-raas</em> · Research-as-a-Service</h1>
+  <div class="meta">prime <b>397</b> ┃ R5 mirror · ◐ verify ┃ v1.0 · sovereign</div>
+</header>
+
+<section class="hero">
+  <h2>Deep research without the <em>hallucinated</em> sources.</h2>
+  <p class="sub">Productised cognitive substrate. Paste a question · five distinct angles fan out · twenty-plus sources fetched in parallel · every claim faces a three-vote adversarial panel · cited synthesis returned with the dead claims listed alongside the live ones.</p>
+  <div class="strip">
+    <span>◐ <b>5-angle</b> fan-out</span>
+    <span>◐ <b>3-vote</b> adversarial</span>
+    <span>◐ <b>cited</b> synthesis</span>
+    <span>◐ <b>BYO</b> Anthropic key</span>
+    <span>◐ <b>MIT</b> · sovereign</span>
+  </div>
+</section>
+
+<section class="demo">
+  <!-- LEFT · INPUT -->
+  <aside class="panel">
+    <h3>Run a research <small>demo · BYO key optional</small></h3>
+
+    <div class="field">
+      <label>Question</label>
+      <textarea id="q" placeholder="What's the actual evidence for X?">What's the actual evidence for the 4-day work week?</textarea>
+    </div>
+
+    <div class="slider-row">
+      <div class="field">
+        <label>angles <b id="vAngles">5</b></label>
+        <input type="range" id="sAngles" min="1" max="7" value="5">
+      </div>
+      <div class="field">
+        <label>votes <b id="vVotes">3</b></label>
+        <input type="range" id="sVotes" min="2" max="5" value="3">
+      </div>
+      <div class="field">
+        <label>kill≥ <b id="vKill">2</b></label>
+        <input type="range" id="sKill" min="1" max="5" value="2">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Anthropic key (optional · BYO · IndexedDB only)</label>
+      <input type="password" id="byoKey" placeholder="sk-ant-... · leave blank for demo">
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="runBtn">▸ Run research</button>
+      <button class="btn ghost" id="resetBtn">Reset</button>
+    </div>
+
+    <div class="keyhint">
+      <b>BYO key:</b> stored in IndexedDB on this device only · sent to <code>api.anthropic.com</code> direct · never to a fall-raas server.<br>
+      <b>No key?</b> Plays a pre-baked scenario about the 4-day work week with real streaming · everything else is identical.
+    </div>
+  </aside>
+
+  <!-- RIGHT · OUTPUT -->
+  <main class="panel">
+    <h3>Workflow <small id="rstatus">idle</small></h3>
+
+    <div class="stepper">
+      <div class="step s1" id="step1"><span class="num">stage 1</span>scope</div>
+      <div class="step s2" id="step2"><span class="num">stage 2</span>search</div>
+      <div class="step s3" id="step3"><span class="num">stage 3</span>fetch</div>
+      <div class="step s4" id="step4"><span class="num">stage 4</span>verify</div>
+      <div class="step s5" id="step5"><span class="num">stage 5</span>synth</div>
+    </div>
+
+    <div class="stream" id="stream">
+      <div class="ln"><span class="text dim">// fall-raas v1.0 · paste a question on the left and press Run research.</span></div>
+      <div class="ln"><span class="text dim">// demo mode plays a pre-baked 4-day-work-week scenario · realistic streaming · no API needed.</span></div>
+    </div>
+  </main>
+</section>
+
+<section class="demo" style="display: block; padding-top: 0;">
+  <div class="output" id="output">
+    <div class="stats">
+      <div class="stat"><span class="v" id="sAnglesV">—</span><span class="k">angles</span></div>
+      <div class="stat"><span class="v" id="sSrcV">—</span><span class="k">sources</span></div>
+      <div class="stat"><span class="v" id="sClaimsV">—</span><span class="k">claims</span></div>
+      <div class="stat"><span class="v" id="sKillV">—</span><span class="k">refuted</span></div>
+      <div class="stat"><span class="v" id="sConfV">—</span><span class="k">confirmed</span></div>
+    </div>
+
+    <div class="summary-card" id="summaryCard" style="margin-top: 16px;">
+      <h4>Synthesis</h4>
+      <p id="summaryText">—</p>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="findings-card" id="findingsCard">
+          <h4>Confirmed findings <span id="confirmedCount" style="color: var(--muted); float: right;">0</span></h4>
+          <div id="findingsList"></div>
+        </div>
+
+        <div class="openq-card" id="openqCard">
+          <h4>Open questions <span id="openqCount" style="color: var(--muted); float: right;">0</span></h4>
+          <div id="openqList"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="refuted-card" id="refutedCard">
+          <h4>Refuted claims (highest-value output) <span id="refutedCount" style="color: var(--muted); float: right;">0</span></h4>
+          <div id="refutedList"></div>
+        </div>
+
+        <div class="sources-card" id="sourcesCard">
+          <h4>Sources <span id="sourcesCount" style="color: var(--muted); float: right;">0</span></h4>
+          <div id="sourcesList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sdk">
+  <h2>Drop-in <em>SDK</em></h2>
+  <div class="code-card">
+    <button class="copy" id="copyCode">Copy</button>
+    <pre id="sdkCode"><span class="kw">import</span> { research } <span class="kw">from</span> <span class="str">'https://sjgant80-hub.github.io/fall-raas/fall-raas-sdk.js'</span>;
+
+<span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">research</span>({
+  question: <span class="str">"What's the actual evidence for the 4-day work week?"</span>,
+  angles: 5,           <span class="cmt">// 1-7 · default 5</span>
+  votes: 3,            <span class="cmt">// 2-5 · adversarial panel size</span>
+  killThreshold: 2,    <span class="cmt">// votes needed to kill a claim</span>
+  byoKey: <span class="str">'sk-ant-...'</span>,  <span class="cmt">// stored in IndexedDB · never sent anywhere else</span>
+  onProgress: (e) =&gt; <span class="fn">console</span>.log(e),
+});
+
+<span class="cmt">// → { summary, findings, refuted, openQuestions, citations, stats }</span>
+<span class="fn">console</span>.log(result.refuted);  <span class="cmt">// the hallucination kill-list</span></pre>
+  </div>
+</section>
+
+<section class="position">
+  <h2 style="font-family: 'Libre Baskerville', serif; font-size: 24px; color: var(--cream); margin: 0 0 18px;">Where this <em style="color: var(--gold);">sits</em></h2>
+  <div class="compare">
+    <div class="col">
+      <h5>Perplexity Pro</h5>
+      <ul>
+        <li><span class="check">+</span> Polished UI</li>
+        <li><span class="check">+</span> Fast single-pass answers</li>
+        <li><span class="cross">−</span> Closed model · no audit</li>
+        <li><span class="cross">−</span> No adversarial verification · accepts what it finds</li>
+        <li><span class="cross">−</span> $20/mo per seat · their infra</li>
+      </ul>
+    </div>
+    <div class="col" style="border-color: var(--gold);">
+      <h5><em>fall-raas</em></h5>
+      <ul>
+        <li><span class="check">+</span> 5-angle fan-out · explicit angles</li>
+        <li><span class="check">+</span> 3-vote adversarial refute panel</li>
+        <li><span class="check">+</span> Lists the <b>refuted</b> claims (the most useful output)</li>
+        <li><span class="check">+</span> MIT · BYO key · self-host or CDN</li>
+        <li><span class="check">+</span> Drop-in JS SDK · 6KB</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h5>Deep Research (OpenAI / Google)</h5>
+      <ul>
+        <li><span class="check">+</span> Thorough · long-form</li>
+        <li><span class="cross">−</span> Black box · no claim-level voting</li>
+        <li><span class="cross">−</span> Closed pipeline · cannot inspect angles</li>
+        <li><span class="cross">−</span> Slow · 5-30 min per query</li>
+        <li><span class="cross">−</span> Cannot be embedded in your own tool</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="tiers">
+  <h2 style="font-family: 'Libre Baskerville', serif; font-size: 24px; color: var(--cream); margin: 0 0 18px;">Konomi <em style="color: var(--gold);">tiers</em></h2>
+  <div class="tier-grid">
+    <div class="tier">
+      <h5>Free</h5>
+      <div class="price">$0 · in-browser</div>
+      <ul>
+        <li>1 run per month</li>
+        <li>≤3 angles · ≤2 votes</li>
+        <li>fall-raas branding visible</li>
+        <li>BYO Anthropic key</li>
+      </ul>
+    </div>
+    <div class="tier sov">
+      <span class="badge-sov">Sovereign · MIT</span>
+      <h5>Self-host</h5>
+      <div class="price">$0 · unlimited · MIT</div>
+      <ul>
+        <li>Unlimited runs · all sliders unlocked</li>
+        <li>BYO key · pays Anthropic direct</li>
+        <li>Self-host on your domain</li>
+        <li>Drop-in SDK for your own tools</li>
+        <li>No telemetry · no callbacks home</li>
+      </ul>
+    </div>
+    <div class="tier">
+      <h5>Pro · hosted</h5>
+      <div class="price">contact · enterprise</div>
+      <ul>
+        <li>Autonomous overnight runs</li>
+        <li>Webhook delivery + JSON export</li>
+        <li>Konomi-signed audit trail</li>
+        <li>Custom search backends (Serper, Brave, Google CSE)</li>
+        <li>Priority support · SLA</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>◊ fall-raas · sovereign cognitive substrate · prime <b style="color: var(--brass)">397</b> · MIT · Simon Gant 2026</div>
+  <div class="badges">
+    <span>R5 mirror</span>
+    <span>◐ verify</span>
+    <span>BYO key</span>
+    <span><a href="https://github.com/sjgant80-hub/fall-raas">github</a></span>
+    <span><a href="./fall-raas-sdk.js">SDK</a></span>
+    <span><a href="./fall-raas-worker.js">worker</a></span>
+  </div>
+</footer>
+
+<script type="module">
+  import { research } from './fall-raas-sdk.js';
+
+  // ─── DOM refs ───────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const stream = $('stream');
+  const steps = [$('step1'), $('step2'), $('step3'), $('step4'), $('step5')];
+  const PHASE_IDX = { scope: 0, search: 1, fetch: 2, verify: 3, synth: 4 };
+
+  // ─── sliders ────────────────────────────────────────────────
+  ['sAngles','sVotes','sKill'].forEach(id => {
+    const s = $(id);
+    const v = $('v' + id.slice(1));
+    s.addEventListener('input', () => v.textContent = s.value);
+  });
+
+  // ─── IndexedDB stash for BYO key ────────────────────────────
+  const DB_NAME = 'fall-raas';
+  function openDB() {
+    return new Promise((res, rej) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('kv');
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+  }
+  async function dbGet(k) {
+    try { const db = await openDB(); return new Promise((res) => { const t = db.transaction('kv', 'readonly').objectStore('kv').get(k); t.onsuccess = () => res(t.result); t.onerror = () => res(null); }); } catch(_) { return null; }
+  }
+  async function dbSet(k, v) {
+    try { const db = await openDB(); db.transaction('kv', 'readwrite').objectStore('kv').put(v, k); } catch(_) {}
+  }
+
+  dbGet('byoKey').then(k => { if (k) $('byoKey').value = k; });
+  $('byoKey').addEventListener('change', e => dbSet('byoKey', e.target.value));
+
+  // ─── stream helpers ─────────────────────────────────────────
+  function append(tag, html) {
+    const ln = document.createElement('div');
+    ln.className = 'ln';
+    ln.innerHTML = `<span class="tag ${tag}">${tag}</span><span class="text">${html}</span>`;
+    stream.appendChild(ln);
+    stream.scrollTop = stream.scrollHeight;
+  }
+  function clearStream() {
+    stream.innerHTML = '';
+  }
+  function activate(phaseIdx) {
+    steps.forEach((s, i) => {
+      s.classList.remove('active', 'done');
+      if (i < phaseIdx) s.classList.add('done');
+      else if (i === phaseIdx) s.classList.add('active');
+    });
+  }
+  function escapeHTML(s) { return String(s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+  function shortUrl(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch(_) { return u.slice(0, 30); } }
+
+  // ─── event handler — render streaming progress ─────────────
+  function onProgress(e) {
+    const ph = e.phase;
+    const tag = ph;
+    if (e.status === 'start') {
+      activate(PHASE_IDX[ph]);
+      $('rstatus').innerHTML = `<span class="pulse"></span>${ph}`;
+      append(tag, `<span class="dim">▸</span> ${escapeHTML(e.msg || ph + ' started')}`);
+    } else if (e.status === 'angle' && ph === 'scope') {
+      append(tag, `→ angle ${e.i + 1}: <span class="url">'${escapeHTML(e.query)}'</span>`);
+    } else if (e.status === 'angle' && ph === 'search') {
+      append(tag, `→ angle ${e.i + 1}: <b>${e.count}</b> sources <span class="dim">· ${escapeHTML(e.note || '')}</span>`);
+    } else if (e.status === 'page' && ph === 'fetch') {
+      const ok = e.ok ? '<span class="v-ok">✓</span>' : '<span class="v-mid">~</span>';
+      append(tag, `${ok} <span class="url">${escapeHTML(shortUrl(e.url))}</span> <span class="dim">${escapeHTML(e.title || '')}</span>`);
+    } else if (e.status === 'extracted') {
+      append(tag, `→ extracted <b>${e.count}</b> claims · running ${$('sVotes').value}-vote panels…`);
+    } else if (e.status === 'voted') {
+      const v = e.vote || '';
+      const cl = e.verdict === 'refuted' ? 'v-ko' : (e.verdict === 'confirmed' ? 'v-ok' : 'v-mid');
+      const sym = e.verdict === 'refuted' ? '✗' : (e.verdict === 'confirmed' ? '✓' : '?');
+      const shortClaim = (e.claim || '').slice(0, 70) + ((e.claim || '').length > 70 ? '…' : '');
+      append(tag, `<span class="${cl}">${sym}</span> ${escapeHTML(shortClaim)} <span class="dim">[${v}]</span>`);
+    } else if (e.status === 'merging') {
+      append(tag, `→ merging semantic duplicates…`);
+    } else if (e.status === 'ranking') {
+      append(tag, `→ ranking by confidence…`);
+    } else if (e.status === 'done') {
+      const summary = ph === 'scope' ? `done · ${e.count} angles`
+        : ph === 'search' ? `done · ${e.raw} raw · ${e.dedup} after dedup`
+        : ph === 'fetch' ? `done · ${e.fetched}/${e.total} fetched`
+        : ph === 'verify' ? `done · ${e.confirmed} confirmed · ${e.refuted} refuted · ${e.inconclusive} inconclusive`
+        : 'done';
+      append(tag, `<span class="v-ok">●</span> <b>${summary}</b>`);
+    }
+  }
+
+  // ─── render final output ────────────────────────────────────
+  function render(result) {
+    $('output').classList.add('show');
+    $('sAnglesV').textContent = result.stats.angles;
+    $('sSrcV').textContent = result.stats.sourcesFetched;
+    $('sClaimsV').textContent = result.stats.claimsExtracted;
+    $('sKillV').textContent = result.stats.killed;
+    $('sConfV').textContent = result.stats.confirmed;
+    $('summaryText').textContent = result.summary;
+
+    $('confirmedCount').textContent = result.findings.length;
+    $('findingsList').innerHTML = result.findings.map(f => `
+      <div class="item ok">
+        <span class="icon">✓ ${f.vote || ''}</span>
+        <div class="body">
+          ${escapeHTML(f.claim)}
+          <a href="${f.sources[0]}" target="_blank" rel="noopener">${shortUrl(f.sources[0])}</a>
+        </div>
+      </div>`).join('');
+
+    $('refutedCount').textContent = result.refuted.length;
+    $('refutedList').innerHTML = result.refuted.map(r => `
+      <div class="item ko">
+        <span class="icon">✗ ${r.vote || ''}</span>
+        <div class="body">
+          ${escapeHTML(r.claim)}
+          ${r.reason ? `<div class="why">actual: ${escapeHTML(r.reason)}</div>` : ''}
+          <a href="${r.sources[0]}" target="_blank" rel="noopener">${shortUrl(r.sources[0])}</a>
+        </div>
+      </div>`).join('');
+
+    $('openqCount').textContent = result.openQuestions.length;
+    $('openqList').innerHTML = result.openQuestions.map(q => `
+      <div class="item mid">
+        <span class="icon">?</span>
+        <div class="body">${escapeHTML(q)}</div>
+      </div>`).join('');
+
+    $('sourcesCount').textContent = result.citations.length;
+    $('sourcesList').innerHTML = result.citations.map(c => `
+      <div class="item">
+        <span class="icon" style="color: var(--brass);">${c.quality === 'fetched' ? '◉' : '◌'}</span>
+        <div class="body">
+          ${escapeHTML(c.title || shortUrl(c.url))}
+          <div class="why">${shortUrl(c.url)} · ${c.quality} · ${c.claimCount} claim(s)</div>
+        </div>
+      </div>`).join('');
+
+    $('rstatus').innerHTML = '<span style="color: var(--green);">●</span> complete';
+    // mark synth done
+    steps.forEach(s => { s.classList.remove('active'); s.classList.add('done'); });
+  }
+
+  // ─── run button ─────────────────────────────────────────────
+  $('runBtn').addEventListener('click', async () => {
+    const q = $('q').value.trim();
+    if (!q) { append('scope', '<span class="v-ko">no question provided.</span>'); return; }
+    $('runBtn').disabled = true;
+    $('runBtn').textContent = '▸ Running…';
+    $('output').classList.remove('show');
+    clearStream();
+    append('scope', `<span class="dim">▸ question:</span> ${escapeHTML(q)}`);
+    try {
+      const result = await research({
+        question: q,
+        angles: parseInt($('sAngles').value, 10),
+        votes: parseInt($('sVotes').value, 10),
+        killThreshold: parseInt($('sKill').value, 10),
+        byoKey: $('byoKey').value || undefined,
+        onProgress,
+      });
+      render(result);
+    } catch (e) {
+      append('verify', `<span class="v-ko">error:</span> ${escapeHTML(e.message || String(e))}`);
+      $('rstatus').innerHTML = '<span style="color: var(--red);">●</span> error';
+    } finally {
+      $('runBtn').disabled = false;
+      $('runBtn').textContent = '▸ Run research';
+    }
+  });
+
+  // ─── reset ──────────────────────────────────────────────────
+  $('resetBtn').addEventListener('click', () => {
+    clearStream();
+    append('scope', '<span class="dim">// ready · paste a question and press Run.</span>');
+    $('output').classList.remove('show');
+    steps.forEach(s => s.classList.remove('active', 'done'));
+    $('rstatus').textContent = 'idle';
+  });
+
+  // ─── copy SDK code ──────────────────────────────────────────
+  $('copyCode').addEventListener('click', () => {
+    const txt = $('sdkCode').innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+      $('copyCode').textContent = 'Copied ✓';
+      setTimeout(() => $('copyCode').textContent = 'Copy', 1600);
+    });
+  });
+
+  // ─── Konomi shim · minimal ──────────────────────────────────
+  (function konomi() {
+    const TIER_KEY = 'konomi_tier';
+    const tier = localStorage.getItem(TIER_KEY) || 'sovereign';
+    window.__konomi = { tier, prime: 397 };
+    try {
+      const bc = new BroadcastChannel('fall-signal');
+      bc.postMessage({ source: 'fall-raas', prime: 397, type: 'boot', tier, ts: Date.now() });
+    } catch(_) {}
+  })();
+</script>
+
+</body>
+</html>
